@@ -1,0 +1,39 @@
+<launch>
+
+<param name="/use_sim_time" value="true"/>
+
+<node name="player" pkg="rosbag" type="play" output="screen" args="--clock /home/z/Datasets/machine_hall/flight_5.bag"/>
+
+<node name="time_autosync" pkg="time_autosync" type="time_autosync_node" >
+
+    <!-- Note: all these parameters are set to these values by default, you only
+     need to set them in your launch files if you want to change them to
+     something else-->
+
+    <param name="stamp_on_arrival" value="false"/>
+    <param name="max_imu_data_age_s" value="2.0"/>
+    <param name="delay_by_n_frames" value="5"/>
+    <param name="focal_length" value="460"/>
+    <param name="calc_offset" value="true"/>
+
+    <param name="verbose" value="true"/>
+    <param name="mah_threshold" value="10.0"/>
+    
+    <param name="inital_delta_t" value="0.05"/>
+    <param name="inital_offset" value="0.0"/>
+    
+    <param name="inital_timestamp_sd" value="0.1"/>
+    <param name="inital_delta_t_sd" value="0.1"/>
+    <param name="inital_offset_sd" value="0.1"/>
+    
+    <param name="timestamp_sd" value="0.02"/>
+    <param name="angular_velocity_sd" value="0.03"/>
+
+    <param name="delta_t_sd" value="0.0001"/>
+    <param name="offset_sd" value="0.0001"/>
+
+    <remap from="/time_autosync/input/image" to="/jay/cam0/image_raw"/>
+    <remap from="/time_autosync/input/imu" to="/jay/imu0"/>
+</node>
+
+</launch>
