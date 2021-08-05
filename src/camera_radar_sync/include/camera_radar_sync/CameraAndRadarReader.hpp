@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <opencv2/opencv.hpp>
-
+#include "camera_radar_sync/PolarToCartConverter.hpp"
 
 class CameraAndRadarReader
 {
@@ -13,10 +13,14 @@ public:
     void getRadarData(cv::string radar_file);
     void getImages(std::vector<cv::String> image_files);
 
-    void cameraAndRadarSync();
+    void cameraAndRadarSynchronize();
 
 private:
-    
+    void sync();
+
+
+    void publishonedata();
+
 
 };
 

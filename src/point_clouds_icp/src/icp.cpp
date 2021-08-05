@@ -40,17 +40,17 @@ void Icp::evaluate(
 
   icp.setInputSource(source_cloud); // 设定source点云
   icp.setInputTarget(target_cloud); // 设定target点云
-  LOG(INFO) << "TransformationEpsilon: " << icp.getTransformationEpsilon(); // 获取转换矩阵的最大epsilion
-  LOG(INFO) << "MaxCorrespondenceDistance: " << icp.getMaxCorrespondenceDistance(); // 获取最大对应点的欧式距离
-  LOG(INFO) << "RANSACOutlierRejectionThreshold: " << icp.getRANSACOutlierRejectionThreshold();  //获取 RANSAC算法剔除错误估计的阈值
+  LOG(INFO) << "TransformationEpsilon: " << icp.getTransformationEpsilon();
+  LOG(INFO) << "MaxCorrespondenceDistance: " << icp.getMaxCorrespondenceDistance();
+  LOG(INFO) << "RANSACOutlierRejectionThreshold: " << icp.getRANSACOutlierRejectionThreshold(); //获取 RANSAC算法剔除错误估计的阈值
 
   pcl::PointCloud<PointType>::Ptr aligned_source =
       boost::make_shared<pcl::PointCloud<PointType>>();
-  icp.align(*aligned_source); //执行ICP转换，并保存对齐后的点云
-  LOG(INFO) << "Final transformation: " << std::endl << icp.getFinalTransformation(); //获取最终的配准的转化矩阵，即原始点云到目标点云的刚体变换
-  if (icp.hasConverged()) { //获取收敛状态，只要迭代过程符合上述终止条件之一，该函数返回true
+  icp.align(*aligned_source);  //执行ICP转换，并保存对齐后的点云
+  LOG(INFO) << "Final transformation: " << std::endl << icp.getFinalTransformation();  //获取最终的配准的转化矩阵，即原始点云到目标点云的刚体变换
+  if (icp.hasConverged()) {  //获取收敛状态，只要迭代过程符合上述终止条件之一，该函数返回true
     LOG(INFO) << "ICP converged." << std::endl
-              << "The score is " << icp.getFitnessScore(); //用于获取迭代结束后目标点云和配准后的点云的最近点之间距离的均值
+              << "The score is " << icp.getFitnessScore();  //用于获取迭代结束后目标点云和配准后的点云的最近点之间距离的均值
   } else {
     LOG(INFO) << "ICP did not converge.";
   }

@@ -12,8 +12,8 @@
 
 DEFINE_int32(icp_max_neighbours, 50 ,"");
 DEFINE_double(icp_radius, 10, "");
-DEFINE_string(icp_source_cloud_filename, "/home/workspace/robust_point_cloud_registration/samples/bunny/source.pcd", "");
-DEFINE_string(icp_target_cloud_filename, "/home/workspace/robust_point_cloud_registration/samples/bunny/target.pcd", "");
+DEFINE_string(icp_source_cloud_filename, "/disk3/sensor_fusion/camera_imu_time_sync/datasets/pcl_pcd/1621586141.699102.pcd", "");
+DEFINE_string(icp_target_cloud_filename, "/disk3/sensor_fusion/camera_imu_time_sync/datasets/pcl_pcd/1621586141.799182.pcd", "");
 DEFINE_string(icp_aligned_cloud_filename, "/tmp/icp.pcd", "");
 DEFINE_double(icp_source_filter_size, 5, "");
 DEFINE_double(icp_target_filter_size, 0, "");
