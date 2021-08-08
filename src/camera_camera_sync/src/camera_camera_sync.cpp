@@ -1,4 +1,3 @@
-#include "camera_camera_sync/camera_camera_sync.hpp"
 #include <dirent.h>
 #include <unistd.h>
 #include <ros/ros.h>
@@ -6,7 +5,93 @@
 #include <vector>
 #include <algorithm>
 
+#include "camera_camera_sync/camera_camera_sync.hpp"
+
 using namespace std;
+using namespace cv;
+void findGoodMatch(std::vector<DMatch> matches, std::vector<DMatch> &good_matches)
+{
+    int sz = matches.size();
+    double max_dist = 0, min_dist = 50;
+
+    for(int i=0; i < sz; i++)
+    {
+        double dist = matches[i].distance;
+        if (dist < min_dist) min_dist = dist;
+        if (dist > max_dist) max_dist = dist;
+    }
+
+    for (int i = 0; i < sz; i++)
+    {
+        if(matches[i].distance < UTILS_FEATURE_MATCH_RATIO_THRESH * max_dist)
+        {
+            good_matches.push_back(matches[i]);
+        }
+    }
+}
+
+void findMatchPoints(const Mat img_left, const Mat img_right, vector<Point2f>& pts1, vector<Point2f>& pts2)
+{
+    Mat grayimg1, grayimg2;
+    if(3 == img_left.channels() )
+    {
+        cvtColor(img_left, grayimg1, CV_BGR2GRAY);
+    } else {
+        grayimg1 = img_left.clone();
+    }
+
+    if(3 == img_left.channels())
+    {
+        cvtColor(img_right, grayimg2, CV_BGR2GRAY);
+    } else {
+        grayimg2 = img_right.clone();
+    }
+
+    Mat img1, img2;
+    float scale = 0.5;
+
+    resize(grayimg1, img1, Size(grayimg1.cols * scale, grayimg1.rows * scale));
+    resize(grayimg2, img2, Size(grayimg2.cols * scale, grayimg2.rows * scale));
+
+    cv::Ptr<cv::GFTTDetector> detector = cv::GFTTDetector::create();
+    Ptr<DescriptorExtractor> extractor = xfeatures2d::SIFT::create();
+    Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("FlannBased");
+
+    vector<KeyPoint> keypoints1, keypoints2;
+    Mat descriptors1, descriptors2;
+
+    detector->detect(img1, keypoints1);
+    detector->detect(img2, keypoints2);
+
+    extractor->compute(img1,keypoints1,descriptors1);
+    extractor->compute(img2,keypoints2,descriptors2);
+
+    vector<DMatch> matches, good_matches;
+    matcher->match(descriptors1, descriptors2, matches);
+    findGoodMatch(matches, good_matches);
+
+
+    for(int i = 0; i<good_matches.size();i++)
+    {
+        int queryIdx = good_matches[i].queryIdx;
+        int trainIdx = good_matches[i].trainIdx;
+
+        Point2f pt1 = keypoints1[queryIdx].pt/scale;
+        Point2f pt2 = keypoints2[trainIdx].pt/scale;
+
+        if(abs(pt1.y - pt2.y) <= UTILS_MATCH_MIN_DIST)
+        {
+            pts1.push_back(pt1);
+            pts2.push_back(pt2);
+        }
+    }
+    // sub pixel
+    TermCriteria criteria = TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 40, 0.01);
+
+    cornerSubPix(grayimg1, pts1, cv::Size(5,5), cv::Size(-1, -1), criteria);
+    cornerSubPix(grayimg2, pts2, cv::Size(5,5), cv::Size(-1, -1), criteria);
+}
+
 
 void CameraCameraSync::getFiles(string path, vector<string>& files)
 {
@@ -83,7 +168,7 @@ std::vector<std::pair<std::string, std::string> > CameraCameraSync::imageTimeSta
         {
             double candidateImageTime = getbaseTime(candidateFileNames, "png");
             timeDifference = std::abs(baseImageTime - candidateImageTime);
-            if(timeDifference <= 0.1)
+            if(timeDifference <= 0.1) // 100ms
             {
                 cv::Mat orgImage = cv::imread(baseFileNames, cv::IMREAD_GRAYSCALE);
                 cv::Mat dstImage = cv::imread(candidateFileNames, cv::IMREAD_GRAYSCALE);
@@ -100,6 +185,7 @@ std::vector<std::pair<std::string, std::string> > CameraCameraSync::imageTimeSta
                 }
             }
         }
+        if(maxSSIM <=0){ continue;}
         std::pair<std::string, std::string> syncPair(std::make_pair(baseFileNames, anchorFilenames));
         syncPairLists.push_back(syncPair);
         std::cout << " Get the "<< baseFileNames << " time sync file is " << anchorFilenames << " and ssim is " << maxSSIM << std::endl;
@@ -112,6 +198,7 @@ std::vector<std::pair<std::string, std::string> > CameraCameraSync::imageTimeSta
 double CameraCameraSync::evaluateImageTimeStampSync(cv::Mat orgImage, cv::Mat dstImage)
 {
     //这里采用SSIM结构相似性来作为图像相似性评判
+    //这里采用全图进行评判，即窗口大小为原图
     double C1 = 6.5025, C2 = 58.5225;
     int width = orgImage.cols;
     int height = orgImage.rows;
@@ -124,6 +211,7 @@ double CameraCameraSync::evaluateImageTimeStampSync(cv::Mat orgImage, cv::Mat ds
     double sigma_x = 0;
     double sigma_y = 0;
     double sigma_xy = 0;
+
     for (int v = 0; v < height; v++)
     {
         for (int u = 0; u < width; u++)
@@ -133,8 +221,11 @@ double CameraCameraSync::evaluateImageTimeStampSync(cv::Mat orgImage, cv::Mat ds
 
         }
     }
+    //图像的平均灰度，也是为了后面的亮度对比函数
+    //(2 * mean_x*mean_y + C1)/(mean_x*mean_x + mean_y * mean_y + C1)
     mean_x = mean_x / width / height;
     mean_y = mean_y / width / height;
+
     for (int v = 0; v < height; v++)
     {
         for (int u = 0; u < width; u++)
@@ -144,6 +235,8 @@ double CameraCameraSync::evaluateImageTimeStampSync(cv::Mat orgImage, cv::Mat ds
             sigma_xy += std::abs((orgImage.at<uchar>(v, u) - mean_x)* (dstImage.at<uchar>(v, u) - mean_y));
         }
     }
+    //这里将结构对比和对比度对比合为一个函数，即
+    //(2 * sigma_xy + C2)/(sigma_x + sigma_y + C2)
     sigma_x = sigma_x / (width*height - 1);
     sigma_y = sigma_y / (width*height - 1);
     sigma_xy = sigma_xy / (width*height - 1);
@@ -234,15 +327,47 @@ void CameraCameraSync::spatialSynchronization(cv::Mat srcImage1, cv::Mat srcImag
 	//进行透视变换
 	cv::perspectiveTransform(obj_corners, scene_corners, H);
  
-	// //显示最终结果
-	// imshow("效果图", imgMatches);
+	//显示最终结果
+	//imshow("效果图", imgMatches);
     time_t timep;
     time(&timep);
     
     char name[1024];
-    sprintf(name, "效果_%d.jpg", timep);
+    sprintf(name, "/home/workspace/data/practice_1_1_multi_camera_sync/match_result/match_%d.jpg", timep);
     
-    cv::imwrite(name,imgMatches);
+    // cv::imwrite(name,imgMatches);
 
 }
+
+bool CameraCameraSync::synchronizePitchRoll(cv::Mat img_left, cv::Mat img_right)
+{
+    if(!img_left.data || !img_right.data )
+    {
+        ROS_ERROR_STREAM("no image data!");
+        return false;
+    }
+
+    std::vector<cv::Point2f> left_pts, right_pts;
+    findMatchPoints(img_left, img_right, left_pts, right_pts);
+    std::cout << "find match points:size: left:" << left_pts.size() << " right: " << right_pts.size() << std::endl;
+
+    // solve pitch and roll between cameras
+    vector<vector<Point2f> > data = {left_pts, right_pts};
+    Eigen::VectorXd x(2);
+    x << 0., 0.;
+
+    MeanFunctor functor(data);
+    Eigen::NumericalDiff<MeanFunctor> num_diff(functor, 1e-6);
+
+    Eigen::LevenbergMarquardt<Eigen::NumericalDiff<MeanFunctor>, double> lm(num_diff);
+    int info = lm.minimize(x);
+
+    std::cout << "current result: pitch & roll: " << x[0]/PI*180 << " " << x[1]/PI*180 << endl;
+
+    pitch_cache_.push_back(x[0]);
+    roll_cache_.push_back(x[1]);
+
+    return true;
+}
+
 

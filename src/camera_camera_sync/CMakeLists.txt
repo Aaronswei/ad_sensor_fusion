@@ -157,11 +157,26 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+
+# Eigen
+find_package(Eigen3 REQUIRED)
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
+message(STATUS "EIGEN3_VERSION: ${EIGEN3_VERSION}")
 # 这里修改为自己的opencv路径
-set(OpenCV_DIR "/disk3/sensor_fusion/3rdparty/share/OpenCV")  
+set(OpenCV_DIR "/home/3rdparty/share/OpenCV")  
 find_package(OpenCV REQUIRED)
 
 message(STATUS "    libraries: ${OpenCV_LIBS}")
+
+# GFlags
+find_package(gflags REQUIRED)
+message(STATUS "GFLAGS_LIBRARIES: ${GFLAGS_LIBRARIES}")
+
+# GLog
+find_package(glog REQUIRED)
+include_directories(SYSTEM ${GLOG_INCLUDE_DIRS})
+link_directories(/usr/local/lib)
+message(STATUS "GLOG_LIBRARIES: ${GLOG_LIBRARIES}")
 
 include_directories(
   include
@@ -171,7 +186,7 @@ include_directories(
 
 add_library(${PROJECT_NAME} src/camera_camera_sync.cpp)
 add_executable(${PROJECT_NAME}_node src/main.cpp)
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} boost_system ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} boost_system ${OpenCV_LIBS} glog::glog ${GFLAGS_LIBRARIES})
 
 #############
 ## Install ##
