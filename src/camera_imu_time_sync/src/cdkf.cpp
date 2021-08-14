@@ -25,6 +25,7 @@ CDKF::CDKF(const Config& config) {
   accessM(measurement_noise_sd_, ANGULAR_VELOCITY).array() =
       config.angular_velocity_sd;
 
+  std::cout << __FILE__ << " " <<__LINE__ << std::endl;
   mah_threshold_ = config.mah_threshold;
   verbose_ = config.verbose;
 }

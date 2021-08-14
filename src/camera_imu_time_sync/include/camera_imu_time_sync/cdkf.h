@@ -20,7 +20,7 @@ class CDKF {
   struct Config {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    bool verbose = false;
+    bool verbose = true;
     double mah_threshold = 10.0;
 
     // initial values

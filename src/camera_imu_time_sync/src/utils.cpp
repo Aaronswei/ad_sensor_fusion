@@ -82,6 +82,7 @@ double calcAngleBetweenImages(const cv::Mat& prev_image,
   for (size_t i = 0; i < tracked_points.size(); ++i) {
     tracked_prev_points[i] = (tracked_prev_points[i] - offset) / focal_length;
     tracked_points[i] = (tracked_points[i] - offset) / focal_length;
+    //std::cout << tracked_prev_points[i].x << " " << tracked_prev_points[i].y << std::endl;
   }
 
   constexpr double kMaxEpipoleDistance = 1e-3;
@@ -90,13 +91,10 @@ double calcAngleBetweenImages(const cv::Mat& prev_image,
   std::vector<uint8_t> inliers;
   cv::Mat cv_F = cv::findFundamentalMat(tracked_prev_points, tracked_points, cv::FM_LMEDS,
                                      kMaxEpipoleDistance, kInlierProbability, inliers);
-
   Eigen::Matrix3d E, W;
 
   cv::cv2eigen(cv_F, E);
-
-  Eigen::JacobiSVD<Eigen::Matrix3d> svd(E, Eigen::ComputeThinU | Eigen::ComputeThinV);
-
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd(E, Eigen::ComputeThinU | Eigen::ComputeThinV);
   W << 0.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0;
 
   Eigen::Matrix3d Ra = svd.matrixU() * W * svd.matrixV().transpose();

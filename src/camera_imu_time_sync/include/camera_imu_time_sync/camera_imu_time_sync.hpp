@@ -12,6 +12,7 @@
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <memory>
 
 #include <std_msgs/Float64.h>
 #include <sensor_msgs/Image.h>
