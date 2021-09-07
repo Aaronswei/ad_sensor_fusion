@@ -67,7 +67,7 @@ void CameraLidarSync::imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     ros::Time stamp;
     stamp = msg->header.stamp;
-    //读取msg中的图像数据和时间戳，并将信息放在list容器中
+    //读取msg中的图像数据和时间戳，并将信息放在std::list容器中
     //CvImagePtr自带时间戳参数，所以，不需要单独添加
     /*
     对于某些常用的编码，cv_bridge提供了可选的color或pixel depth的转换：
@@ -106,7 +106,7 @@ void CameraLidarSync::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr 
     int index = -1;
     double time = laser_scan->header.stamp.toSec();
     /*
-    作业1：这里并未对容器内的时间进行同步，可以先对容器内的时间进行同步
+    作业1：这里并未对容器内的图像时间进行同步，可以先对容器内的时间进行同步
     提示：参考上次课camera_imu的容器内时间同步
     */
     //判断容器内的图像是否满足足够的数量，这里选择10帧，主要是为了方便与激光雷达10帧所对应
@@ -176,6 +176,7 @@ void CameraLidarSync::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr 
         {
             //取出index所对应的图像，由于这里采用的是std::list容器，取指定索引的指针方法不太一样，需要采用advance
             std::list<cv_bridge::CvImage>::iterator iter = images_.begin();
+            //iter为list中第一帧的指针，advance为第一帧指针的偏移到index-1
             advance(iter,index-1);
             std::cout << "the image time is " << iter->header.stamp << std::endl;
             std::cout << "the lidar time is " << time << std::endl;
@@ -192,8 +193,9 @@ void CameraLidarSync::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr 
             类ApproximateVoxelGrid根据给定的点云形成三维体素栅格，并利用所有体素的中心，点近似体素中包含的点集，这样完成下采样得到滤波结果。
             该类比较适合对海量点云数据在处理前进行数据压缩，特别是在特征提取等处理中选择合适的体素大小等尺度相关参数，可以很好地提高算法的效率。
             void setLeafSize (float lx, float ly, float lz)设置体素栅格叶大小，lx、ly、lz分别设置体素在XYZ方向上的尺寸
+            //如此设定，点云压缩了多少倍？？？
 
-            对input cloud进行过滤是为了缩短配准的计算时间。这里只对input cloud进行了滤波处理，减少其数据量到10%左右，而target cloud不需要滤波处理
+            对input cloud进行过滤是为了缩短配准的计算时间。这里只对input cloud进行了滤波处理，而target cloud不需要滤波处理
             */
             pcl::ApproximateVoxelGrid<pcl::PointXYZI> approximate_voxel_filter;
             approximate_voxel_filter.setLeafSize (0.02, 0.02, 0.02);
@@ -217,13 +219,13 @@ void CameraLidarSync::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr 
             */
             // Setting scale dependent NDT parameters
             // Setting minimum transformation difference for termination condition.
-            ndt.setTransformationEpsilon (0.001);
+            ndt.setTransformationEpsilon (0.01);
             // Setting maximum step size for More-Thuente line search.
             ndt.setStepSize (0.01);
             //Setting Resolution of NDT grid structure (VoxelGridCovariance).
             ndt.setResolution (1.0);
             // Setting max number of registration iterations.
-            ndt.setMaximumIterations (500);
+            ndt.setMaximumIterations (20);
 
             // Setting point cloud to be aligned.
             ndt.setInputSource (filtered_cloud);
@@ -242,10 +244,9 @@ void CameraLidarSync::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr 
             std::cout << ndt.getFinalTransformation() << std::endl;
 
             // ////////////////////////align two point clouds//////////////////////////
-            //执行变换，并将结果保存在新创建的‎‎ output_cloud ‎‎中,这个一般可以只要运行一次，其他直接转换即可，感兴趣自行试验
+            //执行变换，并将结果保存在新创建的‎‎ output_cloud_final ‎‎中,这个一般可以只要运行一次，其他直接转换即可，感兴趣自行试验
             // // Transforming unfiltered, input cloud using found transform.
             // pcl::transformPointCloud (second_cloud, *output_cloud, ndt.getFinalTransformation ());
-
         }
         
         std::cout << std::endl;

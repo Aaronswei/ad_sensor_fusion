@@ -53,7 +53,7 @@ bool StereoCameraDistance::Init() {
 
 bool StereoCameraDistance::Run() {
     if(!_is_initialized) {
-        retunr false;
+        return false;
     }
 
     _stereo_distance_results.clear();

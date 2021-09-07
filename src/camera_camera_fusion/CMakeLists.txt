@@ -1,29 +1,17 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(camera_camera_sync)
+project(camera_camera_fusion)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11 -Wall -Ofast -Wfatal-errors -D_MWAITXINTRIN_H_INCLUDED)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
-  dynamic_reconfigure
-  image_geometry
-  image_transport
-  nodelet
-  roscpp
-  rospy
-  rostime
-  sensor_msgs
-  std_msgs
-  tf
-)
+find_package(catkin REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(Eigen3 REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -111,11 +99,14 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES camera_camera_sync
-  CATKIN_DEPENDS cv_bridge dynamic_reconfigure image_geometry image_transport nodelet roscpp rospy rostime sensor_msgs std_msgs tf
-  DEPENDS system_lib
+#  INCLUDE_DIRS include
+#  LIBRARIES camera_camera_fusion
+#  CATKIN_DEPENDS other_catkin_pkg
+#  DEPENDS system_lib
 )
+# 这里修改为自己的opencv路径
+set(OpenCV_DIR "/disk3/sensor_fusion/3rdparty/share/OpenCV")  
+find_package(OpenCV REQUIRED)
 
 ###########
 ## Build ##
@@ -124,13 +115,15 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+ include
  ${catkin_INCLUDE_DIRS}
+ ${Eigen3_INCLUDE_DIRS}
+ ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/camera_camera_sync.cpp
+#   src/${PROJECT_NAME}/camera_camera_fusion.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -141,7 +134,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/camera_camera_sync_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/camera_camera_fusion_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,21 +150,11 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-# 这里修改为自己的opencv路径
-set(OpenCV_DIR "/disk3/sensor_fusion/3rdparty/share/OpenCV")  
-find_package(OpenCV REQUIRED)
 
-message(STATUS "    libraries: ${OpenCV_LIBS}")
-
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-)
-
-add_library(${PROJECT_NAME} src/camera_camera_sync.cpp)
+add_library(${PROJECT_NAME} src/stereo_camera_distance_estimation.cpp)
 add_executable(${PROJECT_NAME}_node src/main.cpp)
-target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} boost_system ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} glog gflags boost_system ${OpenCV_LIBS})
+
 
 #############
 ## Install ##
@@ -220,7 +203,7 @@ target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} b
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_camera_camera_sync.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_camera_camera_fusion.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

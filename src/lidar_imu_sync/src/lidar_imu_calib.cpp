@@ -393,11 +393,11 @@ void LidarIMUCalib::optimize()
 
     // 判断是否收敛
     double angle = fabs(q_l_b_.angularDistance(result));
-    if (angle > 0.5236)
-    {
-       cout << "the difference between before and after optimze is " << angle << " which greater than given threshold 0.5236 !!!" << endl;
-       return;
-    }
+    // if (angle > 0.5236)
+    // {
+    //    cout << "the difference between before and after optimze is " << angle << " which greater than given threshold 0.5236 !!!" << endl;
+    //    return;
+    // }
     q_l_b_ = result;
 }
 

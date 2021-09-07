@@ -34,7 +34,7 @@ struct ImuData
 {
     double stamp;
     Eigen::Vector3d acc;
-    Eigen::Vector3d gyr;
+    Eigen::Vector3d gyr; 
     Eigen::Quaterniond rot;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
