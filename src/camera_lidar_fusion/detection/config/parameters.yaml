@@ -1,0 +1,39 @@
+pedestrian:
+  spawn:
+    side:
+      min: 0.45
+      max: 2.10
+    height:
+      min: 0.90
+      max: 2.25
+    semantic:
+      min: 0.80
+  update:
+    side:
+      min: 0.25
+      max: 2.10
+    height:
+      min: 0.70
+      max: 2.25
+    semantic:
+      min: 0.50
+
+car:
+  spawn:
+    side:
+      min: 0.90
+      max: 5.00
+    height:
+      min: 0.20
+      max: 2.00
+    semantic:
+      min: 0.90
+  update:
+    side:
+      min: 0.40
+      max: 5.00
+    height:
+      min: 0.10
+      max: 2.00
+    semantic:
+      min: 0.60
