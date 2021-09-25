@@ -14,3 +14,12 @@
 20210904 6rd commit：commit the "stereo camera distance"
 
 20210905 7rd commit: commit the "camera imu fusion"
+
+20210918 8rd commit：commit the "camera lidar fusion and camera radar fusion"
+
+# dataset
+用于camera_lidar_fusion的数据集采用 kitti_data: 百度网盘https://pan.baidu.com/s/1dtZKKLBJ8DuDxg6NShStDg,提取码：jd88
+
+用于双目和毫米波雷达的数据连接为：https://pan.baidu.com/s/1vvajIvn-rdKwFkhzZIrdxA提取码：otwn
+
+其他数据集为：https://pan.baidu.com/s/1fXj-qupzd0ZeKOYMv3rFXg，提取码为：lwf9
