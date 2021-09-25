@@ -1,0 +1,12 @@
+<launch>
+
+    <!--- Robot State TF -->
+    <include file="$(find lidar_imu_fusion)/../../launch/module_robot_state_publisher.launch" />
+
+    <!--- Run Rviz-->
+    <include file="$(find lidar_imu_fusion)/../../launch/module_rviz.launch" />
+
+    <!--- SAM -->
+    <include file="$(find lidar_imu_fusion)/../../launch/module_sam.launch" />
+
+</launch>

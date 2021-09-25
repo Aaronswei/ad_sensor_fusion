@@ -1,0 +1,4 @@
+bool resetCloud
+---
+float64 resetCloudTime
+bool success

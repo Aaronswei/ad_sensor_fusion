@@ -1,0 +1,103 @@
+# project name
+PROJECT_NAME: "lvi_sam"
+
+lvi_sam:
+
+  pointCloudTopic: "/velodyne_points"     
+  imuTopic: "/cgi610/imu" 
+  gpsTopic: "/gps/odom"
+  odomTopic: "odometry/imu" 
+  gpsFixTopic: "/cgi610/nav_fix"
+  gpsRawTopic: "/localization/odom"
+
+  # Frames
+  lidarFrame: "base_link"
+  baselinkFrame: "base_link"
+  odometryFrame: "odom"
+  mapFrame: "map"
+
+  saveTrajectory: false
+
+  # #HS5 GPS Settings
+  useGpsData: true
+  useImuHeadingInitialization: true           # if using GPS data, set to "true"
+  useGpsElevation: true                       # if GPS elevation is bad, set to "false"
+  gpsCovThreshold: 2.0                        # m^2, threshold for using GPS data
+  poseCovThreshold: 25.0                      # m^2, threshold for using GPS data
+  useGpsPoseinterpolation: false              # true:pose,false:twist
+
+  # #HS5 lidar
+  sensor: pandar40p                           # lidar sensor type, either 'velodyne' or 'ouster'
+  N_SCAN: 40                                  # number of lidar channel (i.e., 16, 32, 64, 128,kitti 64)
+  Horizon_SCAN: 1800                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048)
+  downsampleRate: 1                           # default: 1. Downsample your data if too many points. i.e., 16 = 64 / 4, 16 = 16 / 1 , kitti2,4
+  lidarMinRange: 1.0                          # default: 1.0, minimum lidar range to be used
+  lidarMaxRange: 1000.0                       # default: 1000.0, maximum lidar range to be used
+  
+
+  imuRotEqualBase: true
+  # #HS5 extrinsic settings
+  extrinsicTrans: [0, 0, 0] #Imu to base_link
+  extrinsicRPY: [0.0157072, 0.9997767, 0.0141383, -0.9998717, 0.0156614, 0.0033463, 0.0031242, -0.0141890, 0.9998944] #Base_link to lidar
+  extrinsicRot: [0.0366,0.9993,0.0124,-0.9990,0.0369,-0.0234,-0.0239,-0.0115,0.9996] #Imu to lidar
+  extrinsicTransLidar2Base : [-0.05,0.95,1.74] #Lidar to base_link
+  extrinsicRotImu2Base : [0.9998527, -0.0171621, 0.0000962, 0.0171615, 0.9998428, 0.0044674, -0.0001729, -0.0044651, 0.9999900] #Imu to base_link
+
+  # #JA602
+  # extrinsicTrans: [0, 0, 0] #Imu to base_link
+  # extrinsicRPY: [0.0289305, 0.9995105, 0.0119117, -0.9995719, 0.0288762, 0.0047047, 0.0043584, -0.0120428, 0.9999180] #Base_link to lidar
+  # extrinsicRot: [0.04607728,0.99880368,0.01637958, -0.99892992,0.04600541,0.00473750,0.00397820,-0.01658044,0.99985462] #Imu to lidar
+  # extrinsicTransLidar2Base : [0.045894679025020091,3.9195938937608172,0.84463641163726733] #Lidar to base_link
+  # extrinsicRotImu2Base : [0.9998527, -0.0171621, 0.0000962, 0.0171615, 0.9998428, 0.0044674, -0.0001729, -0.0044651, 0.9999900] #Imu to base_link
+  
+  # Export settings
+  savePCD: false                              
+  savePCDDirectory: "/Downloads/LOAM/"        # in your home folder, starts and ends with "/". Warning: the code deletes "LOAM" folder then recreates it. See "mapOptimization" for implementation
+
+  # IMU Settings
+  imuAccNoise: 3.9939570888238808e-03
+  imuGyrNoise: 1.5636343949698187e-03
+  imuAccBiasN: 6.4356659353532566e-05
+  imuGyrBiasN: 3.5640318696367613e-05
+  imuGravity: 9.80511
+  imuRate: 100
+
+  errorThreshold: 1.0
+
+  # LOAM feature threshold
+  edgeThreshold: 1.0
+  surfThreshold: 0.1
+  edgeFeatureMinValidNum: 10
+  surfFeatureMinValidNum: 100
+
+  # voxel filter paprams
+  odometrySurfLeafSize: 0.5                    
+  mappingCornerLeafSize: 0.5                    
+  mappingSurfLeafSize: 0.5                      
+
+  # robot motion constraint (in case you are using a 2D robot)
+  z_tollerance: 1000        # meters
+  rotation_tollerance: 1000 # radians
+
+  # CPU Params
+  numberOfCores: 4                              # number of cores for mapping optimization
+  mappingProcessInterval: 0.15                  # seconds, regulate mapping frequency
+
+  # Surrounding map
+  surroundingkeyframeAddingDistThreshold: 1.0   # meters, regulate keyframe adding threshold
+  surroundingkeyframeAddingAngleThreshold: 0.2  # radians, regulate keyframe adding threshold
+  surroundingKeyframeDensity: 2.0               # meters, downsample surrounding keyframe poses   
+  surroundingKeyframeSearchRadius: 50.0         # meters, within n meters scan-to-map optimization (when loop closure disabled)
+
+  # Loop closure
+  loopClosureEnableFlag: false
+  surroundingKeyframeSize: 25                   # submap size (when loop closure enabled)
+  historyKeyframeSearchRadius: 20.0             # meters, key frame that is within n meters from current pose will be considerd for loop closure
+  historyKeyframeSearchTimeDiff: 30.0           # seconds, key frame that is n seconds older will be considered for loop closure
+  historyKeyframeSearchNum: 25                  # number of hostory key frames will be fused into a submap for loop closure
+  historyKeyframeFitnessScore: 0.3              # icp threshold, the smaller the better alignment
+
+  # Visualization
+  globalMapVisualizationSearchRadius: 1000.0    # meters, global map visualization radius
+  globalMapVisualizationPoseDensity: 10.0       # meters, global map visualization keyframe density
+  globalMapVisualizationLeafSize: 1.0           # meters, global map visualization cloud density
