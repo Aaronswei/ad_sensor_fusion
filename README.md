@@ -17,6 +17,8 @@
 
 20210918 8rd commit：commit the "camera lidar fusion and camera radar fusion"
 
+20210925 9rd commit：commit the "lidar and imu fusion"
+
 # dataset
 用于camera_lidar_fusion的数据集采用 kitti_data: 百度网盘https://pan.baidu.com/s/1dtZKKLBJ8DuDxg6NShStDg,提取码：jd88
 
